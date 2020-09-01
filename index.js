@@ -12,6 +12,18 @@ const argv = yargs
   .help()
   .argv
 
+if(!process.env.OFFICE_ACCOUNT_NAME) {
+  throw new Error('OFFICE_ACCOUNT_NAME is not defined. Please check env file.')
+}
+
+if(!process.env.ACCOUNT_NAME_OR_EMAIL) {
+  throw new Error('ACCOUNT_NAME_OR_EMAIL is not defined. Please check env file.')
+}
+
+if(!process.env.ACCOUNT_PASSWORD) {
+  throw new Error('ACCOUNT_PASSWORD is not defined. Please check env file.')
+}
+
 const today = new Date();
 const year = argv['year'] ? argv['year'] : today.getFullYear().toString();
 const month = argv['month'] ? argv['month'] : (today.getMonth() + 1).toString();
@@ -36,7 +48,7 @@ const getOutTime = () => {
 }
 
 (async () => {
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.setViewport({width: 1600, height: 1200});
   await page.goto(targetUrl, {waitUntil: "domcontentloaded"});
