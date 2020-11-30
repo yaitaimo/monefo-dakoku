@@ -52,12 +52,17 @@ const getOutTime = () => {
   const page = await browser.newPage();
   await page.setViewport({width: 1600, height: 1200});
   await page.goto(targetUrl, {waitUntil: "domcontentloaded"});
-  await page.waitFor(500);
 
+  const submitButtonSelector = 'input[type="submit"]';
+  await page.waitForSelector(submitButtonSelector);
   await page.type('#employee_session_form_office_account_name', process.env.OFFICE_ACCOUNT_NAME);
   await page.type('#employee_session_form_account_name_or_email', process.env.ACCOUNT_NAME_OR_EMAIL);
   await page.type('#employee_session_form_password', process.env.ACCOUNT_PASSWORD);
-  await page.click('input[type="submit"]');
+  await page.click(submitButtonSelector);
+  const tourEndButtonSelector = '._btn__2MYp_._btn-close__2MYp_.karte-close';
+  await page.waitForSelector(tourEndButtonSelector);
+  await page.waitFor(1000);
+  await page.click(tourEndButtonSelector);
 
   while(true) {
     await page.waitFor(5000);
@@ -80,15 +85,18 @@ const getOutTime = () => {
     await page.waitFor(200);
     await page.type('input[name="attendance_form[attendance_record_forms_attributes][1][time]"]', getOutTime());
 
-    await page.click('input[type="submit"]');
+    await page.click(submitButtonSelector);
   }
 
   const shinseiButton = await page.$('.attendance-table-header-action a.attendance-button-primary');
-  await shinseiButton.click();
-  await page.waitFor(2000);
-
-  await page.click('input[type="submit"]');
-  await page.waitFor(2000);
+  if (shinseiButton !== null) {
+    await shinseiButton.click();
+    await page.waitFor(2000);
+    await page.click(submitButtonSelector);
+    await page.waitFor(2000);
+  } else {
+    console.log(`勤怠承認申請ボタンがありません(${year}年${month}月分は申請済みではありませんか？)`)
+  }
 
   await browser.close();
 })();
