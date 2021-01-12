@@ -59,10 +59,7 @@ const getOutTime = () => {
   await page.type('#employee_session_form_account_name_or_email', process.env.ACCOUNT_NAME_OR_EMAIL);
   await page.type('#employee_session_form_password', process.env.ACCOUNT_PASSWORD);
   await page.click(submitButtonSelector);
-  const tourEndButtonSelector = '._btn__2MYp_._btn-close__2MYp_.karte-close';
-  await page.waitForSelector(tourEndButtonSelector);
   await page.waitFor(1000);
-  await page.click(tourEndButtonSelector);
 
   while(true) {
     await page.waitFor(5000);
