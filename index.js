@@ -85,7 +85,7 @@ const getOutTime = () => {
     await page.click(submitButtonSelector);
   }
 
-  const shinseiButton = await page.$('.attendance-table-header-action a.attendance-button-primary');
+  const shinseiButton = await page.$('.attendance-table-header-action a.attendance-button-primary#kt-attendance-approval-request-button');
   if (shinseiButton !== null) {
     await shinseiButton.click();
     await page.waitFor(2000);
