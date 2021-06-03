@@ -53,6 +53,9 @@ const getOutTime = () => {
   await page.setViewport({width: 1600, height: 1200});
   await page.goto(targetUrl, {waitUntil: "domcontentloaded"});
 
+  await page.click('.attendance-button-email.attendance-button-link.attendance-button-size-wide');
+  await page.waitFor(1000);
+
   const submitButtonSelector = 'input[type="submit"]';
   await page.waitForSelector(submitButtonSelector);
   await page.type('#employee_session_form_office_account_name', process.env.OFFICE_ACCOUNT_NAME);
