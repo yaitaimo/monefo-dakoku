@@ -3,14 +3,14 @@ const puppeteer = require('puppeteer');
 const yargs = require('yargs');
 
 const argv = yargs
-  .option('year', {
-    alias: 'y'
-  })
-  .option('month', {
-    alias: 'm'
-  })
-  .help()
-  .argv
+    .option('year', {
+      alias: 'y'
+    })
+    .option('month', {
+      alias: 'm'
+    })
+    .help()
+    .argv
 
 if(!process.env.ACCOUNT_NAME_OR_EMAIL) {
   throw new Error('ACCOUNT_NAME_OR_EMAIL is not defined. Please check env file.')
@@ -26,42 +26,43 @@ const month = argv['month'] ? argv['month'] : (today.getMonth() + 1).toString();
 const targetUrl = `https://attendance.moneyforward.com/my_page/attendances?day=1&month=${month}&year=${year}`
 
 const getRandomInt = (min, max) => {
-	min = Math.ceil(min);
-	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min)) + min;
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 const getInTime = () => {
   const minute = getRandomInt(30, 59).toString().padStart(2, '0');
   const hour = getRandomInt(9, 10).toString().padStart(2, '0');
-	return hour + ':' + minute;
+  return hour + ':' + minute;
 }
 
 const getOutTime = () => {
   const minute = getRandomInt(0, 59).toString().padStart(2, '0');
   const hour = getRandomInt(19, 20).toString();
-	return hour + ':' + minute;
+  return hour + ':' + minute;
 }
 
 const editAttendanceForm = async (page) => {
-    const date = await page.$$eval('.attendance-table-header-title', list => {
-      return list[1].textContent;
-    })
-    const addButton = await page.$('.attendance-with-plus-icon-normally');
-    await addButton.click();
-    await page.waitFor(200);
-    await addButton.click();
-    await page.waitFor(200);
+  await page.waitFor('.attendance-table-header-title')
+  const date = await page.$$eval('.attendance-table-header-title', list => {
+    return list[1].textContent;
+  })
+  const addButton = await page.$('.attendance-with-plus-icon-normally');
+  await addButton.click();
+  await page.waitFor(200);
+  await addButton.click();
+  await page.waitFor(200);
 
-    const inTime = getInTime();
-    const outTime = getOutTime();
-    await page.select('select[name="attendance_form[attendance_record_forms_attributes][1][event]"', 'clock_out');
-    await page.type('input[name="attendance_form[attendance_record_forms_attributes][0][time]"]', inTime);
-    await page.waitFor(200);
-    await page.type('input[name="attendance_form[attendance_record_forms_attributes][1][time]"]', outTime);
+  const inTime = getInTime();
+  const outTime = getOutTime();
+  await page.select('select[name="attendance_form[attendance_record_forms_attributes][1][event]"', 'clock_out');
+  await page.type('input[name="attendance_form[attendance_record_forms_attributes][0][time]"]', inTime);
+  await page.waitFor(200);
+  await page.type('input[name="attendance_form[attendance_record_forms_attributes][1][time]"]', outTime);
 
-    console.log(`${date}: ${inTime} - ${outTime}`);
-    await page.click('input[name="commit"]');
+  console.log(`${date}: ${inTime} - ${outTime}`);
+  await page.click('input[name="commit"]');
 }
 
 (async () => {
@@ -91,24 +92,24 @@ const editAttendanceForm = async (page) => {
   await page.waitFor(5000);
   // const rows = await page.$$('.attendance-table-row-');
   const rows = await page.$$eval(
-    '.attendance-table-row-',
-    (rows => {
-      return rows.map(row => {
-        // 勤務日チェック
-        const kinmubi = row.querySelector('.column-pattern');
-        // 有給チェック
-        const yukyu = row.querySelector('.column-status');
-        // 記入済みチェック
-        const edited = row.querySelector('.column-attendance-type.attendance-text-align-center');
-        const edit_button = row.querySelector('.column-edit a');
-        return {
-          kinmubi: kinmubi.innerText.includes('通常勤務'),
-          yukyu: yukyu.innerText != '',
-          edited: edited.innerText == '編',
-          edit_url: edit_button.getAttribute('data-url'),
-        }
+      '.attendance-table-row-',
+      (rows => {
+        return rows.map(row => {
+          // 勤務日チェック
+          const kinmubi = row.querySelector('.column-pattern');
+          // 有給チェック
+          const yukyu = row.querySelector('.column-status');
+          // 記入済みチェック
+          const edited = row.querySelector('.column-attendance-type.attendance-text-align-center');
+          const edit_button = row.querySelector('.column-edit a');
+          return {
+            kinmubi: kinmubi.innerText.includes('通常勤務'),
+            yukyu: yukyu.innerText != '',
+            edited: edited.innerText == '編',
+            edit_url: edit_button.getAttribute('data-url'),
+          }
+        })
       })
-    })
   );
 
   for (const row of rows) {
