@@ -84,22 +84,42 @@ const editAttendanceForm = async (page) => {
   await page.waitFor(5000);
 
   await page.goto(targetUrl, {waitUntil: "domcontentloaded"});
-  await page.waitFor(90000);
+  await page.waitFor(5000);
   const closeButton = await page.$('.karte-close');
   await closeButton.click();
 
-  while(true) {
-    await page.waitFor(5000);
-    const errorRows = await page.$$('.attendance-table-row-error');
-    if (errorRows.length == 0) break;
+  await page.waitFor(5000);
+  // const rows = await page.$$('.attendance-table-row-');
+  const rows = await page.$$eval(
+    '.attendance-table-row-',
+    (rows => {
+      return rows.map(row => {
+        // 勤務日チェック
+        const kinmubi = row.querySelector('.column-pattern');
+        // 有給チェック
+        const yukyu = row.querySelector('.column-status');
+        // 記入済みチェック
+        const edited = row.querySelector('.column-attendance-type.attendance-text-align-center');
+        const edit_button = row.querySelector('.column-edit a');
+        return {
+          kinmubi: kinmubi.innerText.includes('通常勤務'),
+          yukyu: yukyu.innerText != '',
+          edited: edited.innerText == '編',
+          edit_url: edit_button.getAttribute('data-url'),
+        }
+      })
+    })
+  );
 
-    const row = errorRows[0]
-    const editElement = await row.$('.column-edit a');
-    await editElement.click();
+  for (const row of rows) {
+    if (!row.kinmubi) continue;
+    if (row.yukyu) continue;
+    if (row.edited) continue;
 
-    await page.waitFor(2000);
+    await page.click(`[data-url="${row.edit_url}"`);
 
     await editAttendanceForm(page);
+    await page.waitFor(5000)
   }
 
   const shinseiButton = await page.$('.attendance-table-header-action a.attendance-button-primary#kt-attendance-approval-request-button');
